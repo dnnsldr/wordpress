@@ -1,0 +1,384 @@
+<?php session_start();
+ob_start();
+
+load_theme_textdomain('templatic');
+load_textdomain( 'templatic', get_template_directory().'/language/en_US.mo' );
+include_once( ABSPATH . 'wp-admin/includes/plugin.php' ); 
+define('TAGKW_TEXT_COUNT',40);
+if ( ! isset( $content_width ) ) $content_width = 900;
+
+/*** Theme setup ***/
+global $blog_id,$site_url;
+define('TT_ADMIN_FOLDER_NAME','admin');
+define('TT_ADMIN_FOLDER_PATH',get_template_directory().'/'.TT_ADMIN_FOLDER_NAME.'/'); //admin folder path
+update_option('thumbnail_size_w','150'); //admin folder path
+update_option('thumbnail_size_h','105'); //admin folder path
+if(get_option('upload_path') && !strstr(get_option('upload_path'),'wp-content/uploads')){
+	$upload_folder_path = "wp-content/blogs.dir/$blog_id/files/";
+}else {
+	$upload_folder_path = "wp-content/uploads/";
+}
+global $sitepress;
+if(class_exists('sitepress')){
+	$default_language = $sitepress->get_default_language();
+}else{ $default_language ='en'; }
+if(is_plugin_active('wpml-translation-management/plugin.php') && ICL_LANGUAGE_CODE !=$default_language){
+				
+				$siteurl = site_url()."/".ICL_LANGUAGE_CODE;
+				$site_url = $siteurl;
+}else{
+	$site_url = site_url();
+}
+global $site_url;
+
+
+if(file_exists(TT_ADMIN_FOLDER_PATH . 'constants.php')){
+	include_once(TT_ADMIN_FOLDER_PATH.'constants.php');  //ALL CONSTANTS FILE INTEGRATOR
+}
+
+add_action('init','templ_set_my_city'); 
+include_once(TT_ADMIN_FOLDER_PATH.'admin_main.php');  //ALL ADMIN FILE INTEGRATOR
+include_once (TT_FUNCTIONS_FOLDER_PATH . 'custom_functions.php');
+if(file_exists(get_template_directory().'/language.php')){
+include_once(get_template_directory().'/language.php');  //ALL CONSTANTS FILE INTEGRATOR
+}
+
+if(file_exists(TT_FUNCTIONS_FOLDER_PATH . 'custom_filters.php')){
+	include_once (TT_FUNCTIONS_FOLDER_PATH . 'custom_filters.php'); // manage theme filters in the file
+}
+
+if(file_exists(TT_FUNCTIONS_FOLDER_PATH . 'image_resizer.php')){
+include_once (TT_FUNCTIONS_FOLDER_PATH . 'image_resizer.php');
+}
+
+// Theme admin functions
+
+if(file_exists(TT_FUNCTIONS_FOLDER_PATH . 'widgets.php')){
+include_once (TT_FUNCTIONS_FOLDER_PATH . 'widgets.php'); // theme widgets in the file
+}
+
+if(file_exists(TT_FUNCTIONS_FOLDER_PATH . 'meta_boxes.php')){
+include_once (TT_FUNCTIONS_FOLDER_PATH . 'meta_boxes.php'); // theme meta boxes in the file
+}
+
+if(file_exists(TT_WIDGET_FOLDER_PATH . 'widgets_main.php')){
+include_once (TT_WIDGET_FOLDER_PATH . 'widgets_main.php'); // theme widgets in the file
+}
+if(file_exists(get_template_directory() . '/library/rating/post_rating.php')) {
+	include_once (get_template_directory() . '/library/rating/post_rating.php');
+}
+if(file_exists(TT_FUNCTIONS_FOLDER_PATH.'listing_filters.php') && !strstr($_SERVER['REQUEST_URI'],'/wp-admin/')) {
+	include_once (TT_FUNCTIONS_FOLDER_PATH.'listing_filters.php');
+}
+if(file_exists(TT_MODULES_FOLDER_PATH . 'modules_main.php')){
+include_once (TT_MODULES_FOLDER_PATH . 'modules_main.php'); // Theme moduels include file
+}
+
+if(file_exists(TT_INCLUDES_FOLDER_PATH . 'auto_install/auto_install.php')){
+include_once (TT_INCLUDES_FOLDER_PATH . 'auto_install/auto_install.php'); // sample data insert file
+}
+
+
+if(file_exists(TT_FUNCTIONS_FOLDER_PATH . "general_functions.php")){
+require(TT_FUNCTIONS_FOLDER_PATH . "general_functions.php");
+$General = new General();
+global $General;
+}
+
+if(file_exists(get_template_directory() . '/library/functions/mega_menu_widget.php')) {
+	include_once (get_template_directory() . '/library/functions/mega_menu_widget.php');
+}
+/* Below included file contains problem solution for taxonomy seo url BOF */
+if(!file_exists(ABSPATH.'wp-content/plugins/taxonomic-seo-permalinks/taxonomic-seo-permalink.php') && !plugin_is_active('taxonomic-seo-permalinks') && file_exists(get_template_directory() . '/library/functions/taxonomic-seo-permalinks/taxonomic-seo-permalink.php')) {
+	include_once (get_template_directory() . '/library/functions/taxonomic-seo-permalinks/taxonomic-seo-permalink.php');
+}
+
+/* Below included file contains problem solution for taxonomy seo url BOF */
+add_theme_support( 'post-formats', array( 'aside', 'gallery','link', 'image','quote', 'status','video', 'audio','chat') );
+
+if(get_option('ptthemes_alt_stylesheet') == '' || get_option('ptthemes_alt_stylesheet') == '1-default.css'){
+update_option("ptthemes_alt_stylesheet",'1-default');
+}
+if(get_option('ptthemes_enable_claimownership') == ''){
+update_option("ptthemes_enable_claimownership",'Yes');
+}
+add_filter('show_admin_bar', '__return_false');
+function my_awesome_image_resize_dimensions( $payload, $orig_w, $orig_h, $dest_w, $dest_h, $crop ){
+
+	// Change this to a conditional that decides whether you 
+	// want to override the defaults for this image or not.
+	if( false )
+		return $payload;
+
+	if ( $crop ) {
+		// crop the largest possible portion of the original image that we can size to $dest_w x $dest_h
+		$aspect_ratio = $orig_w / $orig_h;
+		$new_w = min($dest_w, $orig_w);
+		$new_h = min($dest_h, $orig_h);
+
+		if ( !$new_w ) {
+			$new_w = intval($new_h * $aspect_ratio);
+		}
+
+		if ( !$new_h ) {
+			$new_h = intval($new_w / $aspect_ratio);
+		}
+
+		$size_ratio = max($new_w / $orig_w, $new_h / $orig_h);
+
+		$crop_w = round($new_w / $size_ratio);
+		$crop_h = round($new_h / $size_ratio);
+
+		$s_x = 0; // [[ formerly ]] ==> floor( ($orig_w - $crop_w) / 2 );
+		$s_y = 0; // [[ formerly ]] ==> floor( ($orig_h - $crop_h) / 2 );
+	} else {
+		// don't crop, just resize using $dest_w x $dest_h as a maximum bounding box
+		$crop_w = $orig_w;
+		$crop_h = $orig_h;
+
+		$s_x = 0;
+		$s_y = 0;
+
+		list( $new_w, $new_h ) = wp_constrain_dimensions( $orig_w, $orig_h, $dest_w, $dest_h );
+	}
+
+	// if the resulting image would be the same size or larger we don't want to resize it
+	if ( $new_w >= $orig_w && $new_h >= $orig_h )
+		return false;
+
+	// the return array matches the parameters to imagecopyresampled()
+	// int dst_x, int dst_y, int src_x, int src_y, int dst_w, int dst_h, int src_w, int src_h
+	return array( 0, 0, (int) $s_x, (int) $s_y, (int) $new_w, (int) $new_h, (int) $crop_w, (int) $crop_h );
+
+}
+add_filter( 'image_resize_dimensions', 'my_awesome_image_resize_dimensions', 10, 6 );
+add_image_size( 'hotTopics', 452, 250, true ); //(cropped)
+add_image_size( 'thumbs', 280, 280, true ); //(cropped)
+add_image_size( 'redCarpet', 232, 260, true ); //(cropped)
+add_image_size( 'events', 142, 100, true );
+add_image_size( 'cityThumb', 208, 125, true );
+add_image_size( 'featuredCity', 650, 250, true );
+
+// custom menu example @ http://digwp.com/2011/11/html-formatting-custom-menus/
+function clean_primary_custom_menus() {
+	$menu_name = 'primary'; // specify custom menu slug
+	if (($locations = get_nav_menu_locations()) && isset($locations[$menu_name])) {
+	
+		//this sets up some stuff for the user menu
+		global $current_user;
+		$user_link = get_author_posts_url($current_user->ID);
+	
+		$menu = wp_get_nav_menu_object($locations[$menu_name]);
+		$menu_items = wp_get_nav_menu_items($menu->term_id);
+
+		$menu_list .= "\t\t\t\t". '<ul class="gn-menu">' ."\n";
+		
+		if(is_user_logged_in()) {
+														
+			$menu_list .= "\t\t\t\t". '<li class="first_li">Welcome<a href="'.$user_link.'/?list=favourite">'.$current_user->display_name.'</a></li>' ."\n";
+														
+			$menu_list .= "\t\t\t\t". '<li><a href="'.$site_url.'/?ptype=profile"><i class="icon icon-left icon-user"></i>Edit Profile</a></li>' ."\n";
+			$menu_list .= "\t\t\t\t". '<li><a href="'.wp_logout_url(home_url()).'"><i class="icon icon-left icon-signout"></i>Log Out</a></li>' ."\n"; 
+			
+			if( get_option('ptthemes_add_place_nav') == 'Yes' ) : 
+				$menu_list .= "\t\t\t\t". '<li><a href="'.$site_url.'/?ptype=post_listing"><i class="icon icon-left icon-map-marker"></i>Add Place</a></li>' ."\n"; 
+			endif; 
+												
+			if(get_option('ptthemes_add_event_nav') == 'Yes' ) : 
+				$menu_list .= "\t\t\t\t". '<li><a href="'.$site_url.'/?ptype=post_event"><i class="icon icon-left icon-calendar"></i>Add Event</a></li>' ."\n"; 
+			endif;
+													
+		} else { 
+														
+			
+				$menu_list .= "\t\t\t\t". '<li><a href="'.$site_url.'/?ptype=register"><i class="icon icon-left icon-home"></i>Register</a></li>' ."\n"; 															
+				$menu_list .= "\t\t\t\t". '<li><a href="'.$site_url.'/?ptype=login"><i class="icon icon-left icon-signin"></i>Sign In</a></li>' ."\n"; 
+		
+													
+			
+		
+		}
+		
+		$menu_list .= "\t\t\t\t". '</ul>' ."\n";
+		
+		$menu_list .= "\t\t\t\t". '<ul class="gn-menu">' ."\n";
+		$menu_list .= "\t\t\t\t". '<li><a href="'.bloginfo("url").'/eventcategory/events">Events</a></li>' ."\n";
+		$menu_list .= "\t\t\t\t". '</ul>' ."\n";
+		
+		$menu_list .= "\t\t\t\t". '<ul class="gn-menu">' ."\n";
+		
+		foreach ((array) $menu_items as $key => $menu_item) {
+			$title = $menu_item->title;
+			$url = $menu_item->url;
+			$relationship = $menu_item->attr_title;
+			$menu_list .= "\t\t\t\t\t". '<li><a rel="'.$relationship.'" href="'. $url .'">'. $title .'</a></li>' ."\n";
+		}
+		$menu_list .= "\t\t\t\t". '</ul>' ."\n";
+		
+	} else {
+		// $menu_list = '<!-- no list defined -->';
+	}
+	echo $menu_list;
+}
+
+// custom menu example @ http://digwp.com/2011/11/html-formatting-custom-menus/
+function clean_main_menu() {
+	$menu_name = 'secondary'; // specify custom menu slug
+	if (($locations = get_nav_menu_locations()) && isset($locations[$menu_name])) {
+		$menu = wp_get_nav_menu_object($locations[$menu_name]);
+		$menu_items = wp_get_nav_menu_items($menu->term_id);
+
+		//$menu_list = '<nav>' ."\n";
+		$menu_list .= "\t\t\t\t". '<ul class="gn-menu">' ."\n";
+		foreach ((array) $menu_items as $key => $menu_item) {
+			$title = $menu_item->title;
+			$url = $menu_item->url;
+			$relationship = $menu_item->attr_title;
+			$menu_list .= "\t\t\t\t\t". '<li><a rel="'.$relationship.'" href="'. $url .'">'. $title .'</a></li>' ."\n";
+		}
+		$menu_list .= "\t\t\t\t". '</ul>' ."\n";
+		
+		
+		$menu_list .= "\t\t\t\t". '<ul class="gn-menu">' ."\n";
+		$menu_list .= "\t\t\t\t". '<li><a href="">Facebook</a></li>' ."\n";
+		$menu_list .= "\t\t\t\t". '<li><a href="">Twitter</a></li>' ."\n";
+		$menu_list .= "\t\t\t\t". '<li><a href="">Google+</a></li>' ."\n";
+		$menu_list .= "\t\t\t\t". '</ul>' ."\n";
+		
+	} else {
+		// $menu_list = '<!-- no list defined -->';
+	}
+	echo $menu_list;
+}
+
+
+//lets check for the ifttt tiny url that each post has
+//and then use that to construct our url redirect
+function ifttt_tiny_url_redirect() {
+	global $post, $wpdb;
+
+	$reg_exUrl = '/(http)\:\/\/[ift\.]+\.(tt)(\/)(\S){7,7}/';
+
+	// The Text you want to filter for urls
+	$text = apply_filters('the_content', $post->post_content);;
+	// Check if there is a url in the text
+	if(preg_match($reg_exUrl, $text, $url)) {
+		// make the urls hyper links
+    echo $url[0];
+	} else {
+		the_permalink();
+	} 
+	
+//end of the ifttt_tiny_url_redirect
+}
+
+function custom_login() {
+	$files = '<link rel="stylesheet" href="'.get_template_directory_uri().'/library/css/login.css" />
+			<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	   	<script src="'.get_template_directory_uri().'/library/js/login.js"></script>';
+	echo $files;
+}
+add_action('login_head', 'custom_login');
+
+function custom_login_url() {
+	return get_option('siteurl');
+}
+add_filter('login_headerurl', 'custom_login_url');
+
+function custom_login_title() {
+	return get_option('blogname');
+}
+add_filter('login_headertitle', 'custom_login_title');
+
+/**
+ * Change register link in wp-login.php file
+ */
+function compassQ_register_url($link){
+    /*
+        Change wp registration url
+    */
+    return str_replace(site_url('wp-login.php?action=register', 'login'),site_url('registration', 'login'),$link);
+}
+add_filter('register','compassQ_register_url');
+
+function compassQ_fix_register_urls($url, $path, $orig_scheme){
+    /*
+        Site URL hack to overwrite register url     
+        http://en.bainternet.info/2012/wordpress-easy-login-url-with-no-htaccess
+    */
+    if ($orig_scheme !== 'login')
+        return $url;
+
+    if ($path == 'wp-login.php?action=register')
+        return site_url('register', 'login');
+
+    return $url;
+}
+add_filter('site_url', 'compassQ_fix_register_urls', 10, 3);
+
+
+
+
+
+/**
+ * Add the input field to the form
+ *
+ * @param int $form_id
+ * @param null|int $post_id
+ * @param array $form_settings
+ */
+ 
+add_action( 'my_btd_new_hook', 'get_btd_city', 10, 3 );
+function get_btd_city( $form_id, $post_id, $form_settings ) {
+    $value = get_post_meta( $post_id, 'wpcf-post_city_id', true );
+ 		
+    if ( $post_id ) {
+        $value = get_post_meta( $post_id, 'wpcf-post_city_id', true );
+    }
+    ?>
+ 
+    <div class="wpuf-label">
+        <label for="wpcf_post_city_id">Which City?</label>
+    </div>
+ 
+    <div class="wpuf-fields">
+        <?php //echo get_multicit_select_dl('front_post_city_id','front_post_city_id','',''); ?>
+        <?php echo get_multicit_select_dl('front_post_city_id'); ?>
+    </div>
+    <?php
+}
+ 
+
+ 
+/**
+ * Update the custom field when the form submits
+ *
+ * @param type $post_id
+ */
+function update_my_btd_new_hook( $post_id ) {
+    if ( isset( $_POST['front_post_city_id'] ) ) {
+        update_post_meta( $post_id, 'wpcf-post_city_id', $_POST['front_post_city_id'] );
+    }
+}
+ 
+add_action( 'wpuf_add_post_after_insert', 'update_my_btd_new_hook' );
+add_action( 'wpuf_edit_post_after_update', 'update_my_btd_new_hook' );
+
+
+ /*new default avatar*/
+add_filter( 'avatar_defaults', 'compassQgravatar' );
+function compassQgravatar ($avatar_defaults) {
+	$myavatar = get_bloginfo('template_directory') . '/images/avatar.jpg';
+	$avatar_defaults[$myavatar] = "CompassQ Avatar";
+	return $avatar_defaults;
+}
+
+/*redirect after registration*/
+// auto log in a user who has just signed up      
+function wpufe_auto_login_new_user( $user_id ) {
+    wp_set_current_user( $user_id );
+    wp_set_auth_cookie( $user_id, false, is_ssl() );
+}
+add_action( 'user_register', 'wpufe_auto_login_new_user' );
+
+?>

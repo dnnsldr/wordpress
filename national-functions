@@ -1,0 +1,1099 @@
+<?php 
+//error_reporting(0);
+error_reporting( E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+define('T_DOMAIN','emblem');
+load_theme_textdomain(T_DOMAIN);
+load_textdomain( T_DOMAIN, get_stylesheet_directory().'/languages/emblem-en_US.mo');
+add_action( 'after_setup_theme', 'emblem_theme_setup',12 );
+function emblem_theme_setup(){
+	
+	/* add sidebar support in theme , want to remove from child theme as remove theme support from child theme's functions file */
+	remove_theme_support('supreme-core-sidebars');
+	add_theme_support( 'supreme-core-sidebars', array( // Add sidebars or widget areas.
+				//'header',
+				//'mega_menu',
+				//'secondary_navigation_right',
+				'home-page-banner',
+				//'after_banner_section',
+				'home-page-content',
+				'entry',
+				'front-page-sidebar',
+				'post-listing-sidebar',
+				'post-detail-sidebar',
+				//'author-page-sidebar',
+				//'primary-sidebar',
+				'after-singular',
+				'contact_page_widget',
+				'contact_page_sidebar',
+				//'supreme_woocommerce',
+				//'theme_footer_oneclm',
+				//'theme_footer_twoclm',
+				'footer'
+				) );
+	add_theme_support('slider_thumb_image');
+	add_theme_support('theme-widget');
+	/*  Add Action for Customizer Controls Settings Start */
+	add_action( 'customize_register',  'emblem_register_customizer_settings',100);
+	/*  Add Action for Customizer Controls Settings End */
+	if(current_theme_supports('theme-widget') && file_exists(get_stylesheet_directory()."/functions/theme-widgets.php")){
+		include(get_stylesheet_directory()."/functions/theme-widgets.php");
+	}
+	/* Register new image sizes. */
+	add_action( 'init', 'emblem_register_image_sizes' );
+	
+	global $theme_sidebars;	
+	$theme_sidebars = array(
+			//'after_banner_section' => array(
+			//	'name' =>	apply_filters('supreme_afetr_header_banner_title',_x( 'After Slider', 'sidebar', THEME_DOMAIN )),
+			//	'description' =>	apply_filters('supreme_afetr_header_banner_description',__( "Displays widgets below the home page slider area.", THEME_DOMAIN )),
+			//),
+			'theme_footer_oneclm' => array(
+				'name' =>	apply_filters('supreme_theme_footer_oneclm_title',_x( 'Before Footer 1 Column', 'sidebar', THEME_DOMAIN )),
+				'description' =>	apply_filters('supreme_theme_footer_oneclm_description',__( "Displays before footer in first column.", THEME_DOMAIN )),
+				'before_widget' => '<div class="widget %2$s">',
+			 'after_widget'  => '</div>',
+			),
+			
+			'theme_footer_twoclm' => array(
+				'name' =>	apply_filters('supreme_theme_footer_twoclm_title',_x( 'Before Footer 2 Column', 'sidebar', THEME_DOMAIN )),
+				'description' =>	apply_filters('supreme_theme_footer_oneclm_description',__( "Displays before footer in fourth column.", THEME_DOMAIN )),
+				'before_widget' => '<div class="widget %2$s">',
+			 'after_widget'  => '</div>',
+			)
+		);
+	remove_action('supreme_after-title_listing','supreme_after_title_listing');
+}
+
+
+//enqueue scripts
+/*-----------------------------------------------------------------------------------*/
+// Add Scripts
+/*-----------------------------------------------------------------------------------*/
+add_action('wp_enqueue_scripts', 'dte_load_javascript_files'); 
+function dte_load_javascript_files() {
+	//wp_register_script('lessScript', get_template_directory_uri().'/library/js/less.js', false, '1.0', false);
+	//wp_deregister_script('jquery'); // removed packed version 
+	wp_deregister_script('colorbox'); // removed packed version 
+	wp_deregister_script('colorbox-wrapper'); // removed packed version 
+
+	wp_register_script('bootstrapScript', 'http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js', array('jquery'),'3.0.3', true);
+	wp_register_script('MagnificScript', get_stylesheet_directory_uri().'/library/js/jquery.magnific-popup.min.js', array('jquery'), '0.9.9', true);
+	wp_register_script('jqueryValidation', get_stylesheet_directory_uri().'/library/js/jquery.validate.min.js', array('jquery'), '1.12.0', true);
+	wp_register_script('additonalMethods', get_stylesheet_directory_uri().'/library/js/additional-methods.min.js', array('jquery'), '1.12.0', true);
+	wp_register_script('customScript', get_stylesheet_directory_uri().'/library/js/custom.js', array('jquery'), '1.0', true);
+	
+	//wp_enqueue_script('lessScript');
+	wp_dequeue_script( 'colorbox' );
+	wp_dequeue_script( 'colorbox-wrapper' );
+	wp_enqueue_script('bootstrapScript');
+	wp_enqueue_script('easingScript');
+	wp_enqueue_script('MagnificScript');
+	wp_enqueue_script('jqueryValidation');
+	wp_enqueue_script('additionalMethods');
+	wp_enqueue_script('customScript');
+}
+
+/*-----------------------------------------------------------------------------------*/
+// Add Styles
+/*-----------------------------------------------------------------------------------*/
+add_action('wp_enqueue_scripts', 'dte_load_style_files'); 
+function dte_load_style_files() {
+	wp_register_style('bootstrap', 'http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css', '3.1.1', true);
+	wp_register_style('modalStyles', get_stylesheet_directory_uri().'/library/css/magnific-popup.css', '1.0', true);
+	wp_enqueue_style('bootstrap');
+	wp_enqueue_style('modalStyles');
+}
+
+
+
+include(get_stylesheet_directory().'/functions/city_widget_functions.php');
+include(get_stylesheet_directory().'/functions/housing-map.php');
+include(get_stylesheet_directory().'/functions/services_widget.php');
+include(get_stylesheet_directory().'/functions/neighborhood_widget.php');
+//include(get_stylesheet_directory().'/functions/city_widget_personalConcierge_functions.php');
+/*
+Name : emblem_register_image_sizes
+Description : Registers additional image size .
+*/
+function emblem_register_image_sizes()
+{
+	add_image_size( 'pagination-thumbnail', '60', '60', true );
+	add_image_size( 'emblem-listing-image', '248', '165', true );
+	add_image_size( 'emblem-post-slider-image', '1105', '565', true );
+	add_image_size( 'emblem-gallery-tab-image', '200', '132', true );
+	add_image_size( 'emblem-main-gallery-tab-image', '635', '420', true );
+	add_image_size( 'emblem_slider_thumb_image', '90', '90', true );
+}
+
+add_action('open_footer','emblem_add_footer_columnwidgets'); // add footer widgets in above footer area
+remove_filter('tmpl-subsidiary','supreme_subsidiary_sidebar'); // Loads the sidebar-subsidiary 
+remove_filter('tmpl-subsidiary-2c','supreme_subsidiary_2c_sidebar'); // Loads the sidebar-subsidiary 
+remove_filter('tmpl-subsidiary-3c','supreme_subsidiary_3c_sidebar'); // Loads the sidebar-subsidiary
+remove_filter('tmpl-subsidiary-4c','supreme_subsidiary_4c_sidebar'); // Loads the sidebar-subsidiary 
+remove_filter('tev_reviews_text','tev_display_reviews',10,2);
+add_filter('tmpl_related_post_per_page','tmpl_related_num');
+
+function tmpl_related_num(){
+	return 3;
+}
+
+add_action('init','tmpl_change_date_format',20);
+
+function tmpl_change_date_format(){
+	remove_action( 'entry-published', 'supreme_entry_published' );
+	add_action( 'entry-published', 'emblem_entry_published' ); // to change the dafault date format
+	
+}
+function emblem_entry_published(){
+	$args =  wp_parse_args( array( 'before' => __('On',THEME_DOMAIN)." ", 'after' => ' ', 'format' => get_option( 'date_format' ) ), $args );
+	if(!$args['format']){  $args['format'] = 'M d | Y'; }
+	$published = '<abbr class="published" title="' . sprintf( get_the_time( esc_attr__( 'l, F jS, Y, g:i a', 'supreme-core' ) ) ) . '">' . sprintf( get_the_time( $args['format'] ) ) . '</abbr>';
+	echo $args['before'] . $published . $args['after'];
+}
+add_action('directory_display_rating','tmpl_theme_listing_meta'); // display meta on listing
+add_action('event_display_rating','tmpl_theme_listing_meta'); // display meta on listing
+
+/* hook to show the post information below title */
+function tmpl_theme_listing_meta(){
+	do_action('supreme-single-post-info');
+}
+/* end */
+
+remove_action('tmpl_single_post_pagination','single_post_pagination');
+add_action('tmpl_single_post_pagination','tmpl_theme_single_post_pagination');
+
+
+function tmpl_theme_single_post_pagination(){
+	global $post;	
+	?>
+    <div class="pos_navigation clearfix">
+	    <?php
+            $prev_post = get_adjacent_post(false, '', true);
+            $next_post = get_adjacent_post(false, '', false); 
+			
+			if ($prev_post) : $prev_post_url = get_permalink($prev_post->ID); 
+			  $prev_post_title = $prev_post->post_title; 
+					$post_images =  bdw_get_images_plugin($prev_post->ID,'pagination-thumbnail');   
+					$attachment_id = $post_images[0]['id'];
+					$alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+					$attach_data = get_post($attachment_id);
+					$title = $attach_data->post_title;
+					if($title ==''){ $title = $prev_post->post_title; }
+					if($alt ==''){ $alt = $prev_post->post_title; }
+					$image = wp_get_attachment_image_src( get_post_thumbnail_id( $prev_post->ID ), 'pagination-thumbnail' );
+					if(isset($image[0]) && $image[0]!='')
+						$prev_post_images = $image[0];
+					elseif($post_images[0]['file']){
+						$prev_post_images =$post_images[0]['file'];
+					
+					}else{
+						$prev_post_images = get_stylesheet_directory_uri()."/images/noimage.jpg";
+					} ?>
+						<div class="post_left fl">
+							<a class="post_prev" href="<?php echo $prev_post_url; ?>">
+								<img src="<?php echo $prev_post_images; ?>" alt="<?php echo $prev_post_title; ?>" />
+									<abbr>
+										<em><i class="icon-angle-left"></i><?php echo sprintf(__('Previous %s',T_DOMAIN),ucfirst($prev_post->post_type));?></em>
+										<span><?php echo $prev_post_title; ?></span>
+									</abbr>
+							</a>
+						</div>
+        <?php endif; ?>
+        <?php if ($next_post) : $next_post_url = get_permalink($next_post->ID); 
+
+			       $post_nimages =  bdw_get_images_plugin($next_post->ID,'pagination-thumbnail');   
+					$attachment_id = $post_nimages[0]['id'];
+					$altn = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+					$attach_data = get_post($attachment_id);
+					$next_post_title = $attach_data->post_title;
+					if($next_post_title ==''){ $next_post_title = $next_post->post_title; }
+					if($altn ==''){ $altn = $next_post->post_title; }
+					$image = wp_get_attachment_image_src( get_post_thumbnail_id( $next_post->ID ), 'pagination-thumbnail' );
+					if(isset($image[0]) && $image[0]!='')
+						 $next_post_images = $image[0];
+					elseif($post_nimages[0]['file']){
+							$next_post_images = $post_nimages[0]['file'];
+					}else{
+						$next_post_images = get_stylesheet_directory_uri()."/images/noimage.jpg";
+					}
+	
+					?>
+					<div class="post_right fr"> 
+						<a class="post_next" href="<?php echo $next_post_url; ?>">
+							<img src="<?php echo $next_post_images; ?>" alt="<?php echo $altn; ?>" />
+								<abbr>
+									<em><?php echo sprintf(__('Next %s',T_DOMAIN),ucfirst($next_post->post_type));?><i class="icon-angle-right"></i></em>
+									<span><?php echo $next_post->post_title; ?></span>
+								</abbr>
+						</a>
+					</div>
+        <?php endif; ?>
+   
+    </div>
+    <?php
+}
+//add_action('directory_display_rating','directory_display_rating');
+function emblem_add_footer_columnwidgets(){ ?>
+	<div class="emblem_footer footer-wrap clearfix">
+		<?php if(is_active_sidebar('theme_footer_oneclm')){ ?>
+		<div class="footer_1col">
+		<?php dynamic_sidebar('theme_footer_oneclm'); ?>
+		</div>
+		<?php }
+		
+		if(is_active_sidebar('theme_footer_twoclm')){ ?>
+			<div class="footer_4col">
+		<?php dynamic_sidebar('theme_footer_twoclm'); ?>
+			</div>
+			<?php } ?>
+	</div>
+<?php }
+
+remove_action('author_box','add_author_box',11);
+add_action('author_box_', 'add_author_box_',12);
+function add_author_box_($content)
+{
+	global $current_user,$wp_query,$wpdb;
+	$qvar = $wp_query->query_vars;
+	$authname = $qvar['author_name'];
+
+	if(isset($_POST['auth_csutom_post']))
+	{	
+		update_user_meta( $_POST['author_id'], 'author_custom_post', $_POST['author_custom_post'] ); 
+	}
+
+	if(isset($authname) && $authname !='') :
+		$curauth = get_userdatabylogin($authname);
+	else :
+		$curauth = update_user_meta(intval($_REQUEST['author']));
+	endif;
+
+		global $form_fields_usermeta;
+		/* Fetch the user custom fields */
+		$form_fields_usermeta=fetch_user_custom_fields();
+		$dirinfo = wp_upload_dir();
+		$path = $dirinfo['path'];
+		$url = $dirinfo['url'];
+		$subdir = $dirinfo['subdir'];
+		$basedir = $dirinfo['basedir'];
+		$baseurl = $dirinfo['baseurl'];
+		$profile_page_id=get_option('tevolution_profile');
+		if(function_exists('icl_object_id')){
+			$profile_page_id = icl_object_id($profile_page_id, 'page', false);
+		}		
+		$profile_url=get_permalink($profile_page_id);
+		?>
+		
+	<div class="author_cont clearfix">
+		<div class="author_cont_wrap">
+		<div class="author_photo">
+		<?php
+			if(get_user_meta($curauth->ID,'profile_photo',true) != ""){
+				echo '<img src="'.get_user_meta($curauth->ID,'profile_photo',true).'" alt="'.$curauth->display_name.'" title="'.$curauth->display_name.'" />';
+			}else{
+				echo get_avatar($curauth->ID, 180 ); 
+			}
+		  if($current_user->ID == $curauth->ID)
+		  {
+		   ?>
+			<div class="editProfile"><a href="<?php echo $profile_url; ?>" ><?php _e('Edit Profile',DOMAIN);?> </a> </div>
+		  <?php } ?>
+		</div>
+		<div class="right_box">
+		<p class="email"><label><?php _e('Email',DOMAIN); ?></label> : <?php echo $curauth->user_email; ?></p>	
+		<?php
+		 if(is_array($form_fields_usermeta) && !empty($form_fields_usermeta)){
+			 foreach($form_fields_usermeta as $key=> $_form_fields_usermeta)
+			  {
+				if(function_exists('icl_register_string')){
+						icl_register_string(DOMAIN,$_form_fields_usermeta['label'],$_form_fields_usermeta['label']);
+						$_form_fields_usermeta['label'] = icl_t(DOMAIN,$_form_fields_usermeta['label'],$_form_fields_usermeta['label']);
+					}
+				if(get_user_meta($curauth->ID,$key,true) != "" && $key !='facebook' && $key !='twitter' && $key!= 'linkedin' && $key!= 'user_email' && $key!= 'profile_photo'): 
+				if($_form_fields_usermeta['type']=='head' && $_form_fields_usermeta['on_author_page']==1):
+					echo '<h2>'. $_form_fields_usermeta['label'].'</h2>';
+				endif;
+				
+				if(get_user_meta($curauth->ID,$key,true) != ""): 
+					if($_form_fields_usermeta['on_author_page']): 					
+						if($_form_fields_usermeta['type']=='multicheckbox'):  ?>
+							<?php
+								$checkbox = '';
+								foreach(get_user_meta($curauth->ID,$key,true) as $check):
+										$checkbox .= $check.",";
+								endforeach; ?>
+								<p><label><?php echo $_form_fields_usermeta['label']; ?></label> : <?php echo substr($checkbox,0,-1); ?></p>
+                         <?php elseif($_form_fields_usermeta['type']=='upload'): ?>
+                         	<p><label  style="vertical-align:top;"><?php echo $_form_fields_usermeta['label']." : "; ?></label> <img src="<?php echo update_user_meta($curauth->ID,$key,true);?>" style="width:150px;height:150px" /></p>
+					<?php else: ?>
+								<p><label><?php echo $_form_fields_usermeta['label']; ?></label> : <?php echo update_user_meta($curauth->ID,$key,true); ?></p>
+								
+					<?php endif;
+						endif;// finish check multi checkbox condition					
+					endif;// finish the on author page condition				
+				endif;//finish key is not blank
+			  }
+		  }
+		  
+		 if($curauth->ID): 
+			 $posttaxonomy = get_option("templatic_custom_post");
+			 foreach($posttaxonomy as $key=>$value){
+				$post_count += $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE post_author = '" . $curauth->ID . "' AND post_type = '".$key."' AND post_status = 'publish'");				
+			 }
+			 ?>
+			 <p>
+				<span class="i_agent_others"><?php echo _e('Total Listing',DOMAIN);?> : <b><?php echo $post_count;?></b></span>
+			 </p>
+			 <?php
+		 endif;
+		 
+		/* payment type details */
+		$posttaxonomy = get_option("templatic_custom_post");
+		foreach($posttaxonomy as $key=>$value){
+			$price_pkg = get_user_meta($curauth->ID,$key.'_package_select',true);
+			$pagd_data = get_post($price_pkg);
+			$package_name = $pagd_data->post_title;
+			
+			$pkg_type = get_post_meta($price_pkg,'package_type',true);
+			$limit_no_post = get_post_meta($price_pkg,'limit_no_post',true);
+			
+			$submited =get_user_meta($curauth->ID,$key.'_list_of_post',true);
+			$remaining = intval($limit_no_post) - intval($submited);
+			if($pkg_type == 2 && $current_user->ID != ''){
+				echo "<div class='pkg_info'><p>";
+				if($remaining >0 ){
+					echo apply_filters('author_subscription_message',sprintf(__('You have subscribed to %s price package for %s. <br/>Total number of posts: %s, Submited: %s, Remaining: %s',DOMAIN),'<b>'.$package_name.'</b>','<b>'.ucfirst($key).'</b>','<b>'.$limit_no_post.'</b>','<b>'.$submited.'</b>','<b>'.$remaining.'</b>'));	
+				}else{
+					echo apply_filters('author_subscription_message',sprintf(__('You have subscribed to %s price package for %s. <br/> Total number of posts: %s',DOMAIN),'<b>'.$package_name.'</b>','<b>'.ucfirst($key).'</b>','<b>'.$limit_no_post.'</b>'));
+				}			
+				echo ".</p></div>";
+			
+			}
+		 }
+		  $posttaxonomy = get_option("templatic_custom_post");		  
+		  //$posttaxonomy = get_post_types();		  
+		  
+		  $author_post= get_user_meta($curauth->ID, 'author_custom_post',true ); 
+		  if($posttaxonomy):?>   
+		 <?php endif; ?>
+			
+			</div>
+		</div>
+				<?php
+					if($curauth->user_email || get_user_meta($curauth->ID,'twitter',true) || get_user_meta($curauth->ID,'facebook',true) || get_user_meta($curauth->ID,'linkedin',true))
+					{
+						$facebook=get_user_meta($curauth->ID,'facebook',true);
+						$twitter=get_user_meta($curauth->ID,'twitter',true);
+						$linkedin=get_user_meta($curauth->ID,'linkedin',true);
+				?>
+				<ul class="autor_social_links">
+					<?php
+						if($curauth->user_email)
+						{?>
+							<li class="email"><a href="mailto:<?php echo $curauth->user_email; ?>"><i class="icon-envelope"></i><abbr><?php _e('E-mail',THEME_DOMAIN); ?></abbr></a></li>	
+					<?php } 
+						if(get_user_meta($curauth->ID,'twitter',true))
+						{?>
+							<li class="twitter"><a href="<?php echo (strpos('http://',$twitter) !== false)?$twitter:'http://'.$twitter; ?>" target="_blank"><i class="icon-twitter"></i><abbr><?php _e('Twitter',THEME_DOMAIN); ?></abbr></a></li>			
+					<?php } 
+						if(get_user_meta($curauth->ID,'facebook',true))
+						{?>
+							<li class="facebook"><a href="<?php echo (strpos('http://',$facebook) !== false)?$facebook:'http://'.$facebook; ?>" target="_blank"><i class="icon-facebook"></i><abbr><?php _e('Facebook',THEME_DOMAIN); ?></abbr></a></li>
+					<?php }
+						if(get_user_meta($curauth->ID,'linkedin',true))
+						{?>
+							<li class="yim"><a href="<?php echo (strpos('http://',$linkedin) !== false)?$linkedin:'http://'.$linkedin; ?>" target="_blank"><i class="icon-linkedin"></i><abbr><?php _e('LinkedIn',THEME_DOMAIN); ?></abbr></a></li>					
+					<?php } ?>
+				</ul>
+				<?php
+				}?>
+		  </div>
+		  <?php 
+		  
+}
+add_action('author_listing', 'add_author_author_listing');
+function add_author_author_listing()
+{
+	global $current_user,$wp_query,$wpdb;
+	$qvar = $wp_query->query_vars;
+	$authname = $qvar['author_name'];
+
+	if(isset($_POST['auth_csutom_post']))
+	{	
+		update_user_meta( $_POST['author_id'], 'author_custom_post', $_POST['author_custom_post'] ); 
+	}
+
+	if(isset($authname) && $authname !='') :
+		$curauth = get_userdatabylogin($authname);
+	else :
+		$curauth = get_userdata(intval($_REQUEST['author']));
+	endif;
+	$posttaxonomy = get_option("templatic_custom_post");
+
+		$author_post= get_user_meta($curauth->ID, 'author_custom_post',true ); 
+		
+			$i=0;  
+				$author_link=apply_filters('templ_login_widget_dashboardlink_filter',get_author_posts_url($curauth->ID));
+				if(strpos($author_link, "?"))
+					$author_link=apply_filters('templ_login_widget_dashboardlink_filter',get_author_posts_url($curauth->ID))."&";
+				else
+					$author_link=apply_filters('templ_login_widget_dashboardlink_filter',get_author_posts_url($curauth->ID))."?";
+					
+					
+			$obj = get_post_type_object( 'post' );			
+			$activetab=(isset($_REQUEST['custom_post']) && 'post'== $_REQUEST['custom_post']) ?'nav-author-post-tab-active':'';
+		  ?>
+			<div class="author_post_tabs">
+				<div class="author_custom_post_wrapper">
+				<ul>  
+				<?php 
+				$posttaxonomy = get_option("templatic_custom_post");		  
+				foreach($posttaxonomy as $key=>$_posttaxonomy):					
+				?>            	
+				<?php   $active_tab=(isset($_REQUEST['custom_post']) && $key==$_REQUEST['custom_post']) ?'nav-author-post-tab-active':'';
+						if($active_tab=="" && !isset($_REQUEST['custom_post']))
+						{
+							if($i==0)
+							{
+								$active_tab ='nav-author-post-tab-active';						
+								$custom_post_type=$key;
+								$i++;
+							}
+						}
+						if(function_exists('icl_register_string')){
+							icl_register_string(DOMAIN,$_posttaxonomy['label'].'author',$_posttaxonomy['label']);
+							$_posttaxonomy['label'] = icl_t(DOMAIN,$_posttaxonomy['label'].'author',$_posttaxonomy['label']);
+						}
+					?>
+					<li><a href="<?php echo $author_link;?>custom_post=<?php  echo $key;?>" class="author_post_tab <?php echo $active_tab;?>"><?php echo sprintf(__('%s',T_DOMAIN),$_posttaxonomy['labels']['menu_name']); ?></a></li>                    
+				<?php  endforeach;
+					
+					do_action('tevolution_author_tab');
+				?>
+                </ul>
+			 </div>
+			</div>        
+				<?php				
+					global $wp_query;
+					if(isset($_REQUEST['custom_post']) && $_REQUEST['custom_post']!="")
+						$post_type=$_REQUEST['custom_post'];
+					else
+						$post_type=$custom_post_type;
+					
+					$posts_per_page=get_option('posts_per_page');
+					//echo $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+					$args=array(
+							'post_type'  =>$post_type,
+							'author'=>$curauth->ID,
+							'post_status' => 'publish',
+							'posts_per_page' =>$posts_per_page,
+							'paged'=>$paged,
+							'order_by'=>'date',
+							'order' => 'DESC'
+						);					
+					query_posts( $args );					
+				do_action('tevolution_author_query');	
+}
+add_action('related_post_before_content','related_post_before_content');
+function related_post_before_content()
+{
+	global $post;
+	$post_id=get_the_ID();
+	
+	echo '<div class="author_rating">';
+		
+		$tmpdata = get_option('templatic_settings');
+		$tmpdata = get_option('templatic_settings');
+		 if(is_plugin_active('Templatic-Multi-Rating/multiple_rating.php') && function_exists('get_single_average_rating_image')):?>
+                    <div class="event_rating_row"><span class="single_rating"> <?php echo get_single_average_rating_image($post->ID);?> </span></div>
+		<?php
+		elseif($tmpdata['templatin_rating']=='yes'):?>
+			<div class="directory_rating_row"><span class="single_rating"> <?php echo draw_rating_star_plugin(get_post_average_rating($post_id));?> </span></div>
+		<?php endif;
+		
+		echo '</div>';
+}
+add_filter('supreme_post_images','tmpl_emblem_post_images');
+/* Name : tmpl_emblem_post_images
+Desc : function to show the images */
+function tmpl_emblem_post_images($post){
+	global $post;
+	$is_parent = $post->post_parent;	
+	if(function_exists('bdw_get_images_plugin')){
+		if($is_parent != 0){
+			$post_img = bdw_get_images_plugin($is_parent,'emblem-listing-image');					
+			$post_image = @$post_img[0]['file'];
+		}else{
+			$post_img = bdw_get_images_plugin($post->ID,'emblem-listing-image');					
+			$post_image = @$post_img[0]['file'];					
+		}
+		if(!$post_image)
+		{
+			$post_image = TEVOLUTION_EVENT_URL.'images/noimage-220x150.jpg';
+		}
+		return $post_image;
+	}
+}
+/*
+ * Function Name: emblem_listing_after_title
+ * Return: display the listing relating, listing address and contact info after listing title
+ */
+remove_action('templ_post_title','directory_listing_after_title',13);
+add_action('templ_post_title','emblem_listing_after_title',13);
+function emblem_listing_after_title()
+{
+	global $post,$htmlvar_name,$posttitle,$wp_query;	
+	
+	$is_archive = get_query_var('is_ajax_archive');
+	
+	if((is_archive() || $is_archive == 1) && $post->post_type ==CUSTOM_POST_TYPE_LISTING && !is_search()){
+		$post_id=get_the_ID();		
+		$tmpdata = get_option('templatic_settings');
+		
+		$time=get_post_meta($post->ID,'listing_timing',true);
+		$address=get_post_meta($post->ID,'address',true);
+		$phone=get_post_meta($post->ID,'phone',true);
+		echo ($htmlvar_name['[#taxonomy_name#]']['address'])? '<p class="address" itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">'.$address.'</p>' : '';	
+		echo ($htmlvar_name['[#taxonomy_name#]']['listing_timing'])? '<p class="time">'.$time.'</p>' : '';
+		
+		if($htmlvar_name['Contact Information']['twitter']  || $htmlvar_name['Contact Information']['facebook'] || $htmlvar_name['Contact Information']['google_plus'])
+		{
+			$twitter=get_post_meta($post->ID,'twitter',true);
+			$facebook=get_post_meta($post->ID,'facebook',true);
+			$google_plus=get_post_meta($post->ID,'google_plus',true);
+			echo "<div class='social_wrapper'>";
+				
+			if($twitter != '' && $htmlvar_name['Contact Information']['twitter'])
+			{
+			?>
+				<a class='twitter <?php echo $htmlvar_name['Contact Information']['twitter']['style_class']; ?>' href="<?php echo $twitter;?>"><label><?php _e('twitter',DOMAIN); ?></label></a>
+			<?php
+			}
+			if($facebook != '' && $htmlvar_name['Contact Information']['facebook'])
+			{
+			?>
+				<a class='facebook <?php echo $htmlvar_name['Contact Information']['facebook']['style_class']; ?>' href="<?php echo $facebook;?>"><label><?php _e('facebook',DOMAIN); ?></label></a>
+			<?php
+			}
+			if($google_plus != '' && $htmlvar_name['Contact Information']['google_plus'])
+			{
+			?>
+				<a class='google_plus <?php echo $htmlvar_name['Contact Information']['google_plus']['style_class']; ?>' href="<?php echo $google_plus;?>"><label><?php _e('Google+',DOMAIN); ?></label></a>
+			<?php
+			}
+			echo "</div>";
+		}
+		$j=0;
+		if(!empty($htmlvar_name)){
+			foreach($htmlvar_name as $key=>$value){
+		$i=0;
+		foreach($value as $k=>$val){
+			$key = ($key=='[#taxonomy_name#]')?'Lising Information': $key;
+			if($k!='post_title' && $k!='post_content' && $k!='post_excerpt' && $k!='post_images' && $k!='listing_timing' && $k!='address' && $k!='listing_logo' && $k!='video' && $k!='post_tags' && $k!='map_view' && $k!='proprty_feature' && $k!='phone' && $k!='email' && $k!='website' && $k!='twitter' && $k!='facebook' && $k!='google_plus' && $k!='contact_info')
+			{
+				
+				
+				$field= get_post_meta(get_the_ID(),$k,true);				
+				if($val['type'] == 'multicheckbox' && $field!=""):				
+					$option_values = explode(",",$val['option_values']);				
+					$option_titles = explode(",",$val['option_title']);
+					for($i=0;$i<count($option_values);$i++){
+						if(in_array($option_values[$i],$field)){
+							if($option_titles[$i]!=""){
+								$checkbox_value .= $option_titles[$i].',';
+							}else{
+								$checkbox_value .= $option_values[$i].',';
+							}
+						}
+					}	
+				?>
+                    <p class='<?php echo $k;?>'><label><?php echo $val['label']; ?></label> : <?php echo substr($checkbox_value,0,-1);?></p>
+                    <?php 
+				elseif($val['type']=='radio'):
+					$option_values = explode(",",$val['option_values']);				
+					$option_titles = explode(",",$val['option_title']);
+					for($i=0;$i<count($option_values);$i++){
+						if($field == $option_values[$i]){
+							if($option_titles[$i]!=""){
+								$rado_value = $option_titles[$i];
+							}else{
+								$rado_value = $option_values[$i];
+							}							
+							?>
+                                   <p class='<?php echo $k;?>'><label><?php echo $val['label']; ?></label>: <?php echo $rado_value;?></p>
+                                   <?php
+						}
+					}	
+				endif;
+				
+				if($val['type'] != 'multicheckbox' && $val['type'] != 'radio' &&$field!=''):?>
+				<p class='<?php echo $val['style_class'];?>'><label><?php echo $val['label']; ?></label> : <?php echo $field;?></p>
+				<?php
+				endif;
+			
+			}// End If condition
+			
+			$j++;
+		}// End second foreach
+	}//foreach loop
+		}//htmlvar_name if condition
+		
+	}
+	
+	if(is_search() && $post->post_type ==CUSTOM_POST_TYPE_LISTING){
+		$address=get_post_meta($post->ID,'address',true);
+		echo '<p class="address" itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">'.$address.'</p>';
+	}
+}
+/*
+ * Function Name: emblem_category_page_image
+ * Return: display the listing image size as per emblem theme for Listing post type.
+ */
+remove_action('directory_category_page_image','directory_category_page_image');
+remove_action('directory_archive_page_image','directory_category_page_image');
+add_action('directory_category_page_image','emblem_category_page_image');
+add_action('directory_archive_page_image','emblem_category_page_image');
+function emblem_category_page_image()
+{
+	global $post,$wpdb,$wp_query;
+	
+	$featured=get_post_meta(get_the_ID(),'featured_c',true);
+	$featured=($featured=='c')?'featured_c':'';
+	
+	if(isset($_REQUEST['sort']) && $_REQUEST['sort'] =='favourite'){
+		$post_type_tag = "-".$post->post_type;
+	}else{
+		$post_type_tag = '';
+	}
+	 if ( has_post_thumbnail()):
+		echo '<a href="'.get_permalink().'" class="listing_img">';
+		if($featured){echo '<span class="featured_tag">'.__('Featured',DOMAIN).$post_type_tag.'</span>';}
+		the_post_thumbnail('emblem-listing-image'); 
+		echo '</a>';
+	else:
+		if(function_exists('bdw_get_images_plugin'))
+		{
+			$post_img = bdw_get_images_plugin(get_the_ID(),'emblem-listing-image');						
+			$thumb_img = $post_img[0]['file'];
+			$attachment_id = $post_img[0]['id'];
+			$attach_data = get_post($attachment_id);
+			$img_title = $attach_data->post_title;
+			$img_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+		}
+		?>
+	    <a href="<?php the_permalink();?>" class="listing_img">
+       <?php if($featured){echo '<span class="featured_tag">'.__('Featured',DOMAIN).$post_type_tag.'</span>';}?>
+	    <?php if($thumb_img):?>
+		    <img src="<?php echo $thumb_img; ?>"  alt="<?php echo $img_alt; ?>" title="<?php echo $img_title; ?>" />
+	    <?php else:?>    
+			<img src="<?php echo TEVOLUTION_DIRECTORY_URL; ?>images/noimage-220x150.jpg" alt="" />
+	    <?php endif;?>
+	    </a>	
+   <?php endif;
+}
+/*
+ * Function Name: emblem_event_category_page_image
+ * Return: display the listing image size as per emblem theme for Event post type.
+ */
+remove_action('event_category_page_image','event_category_page_image');
+remove_action('event_archive_page_image','event_category_page_image');
+add_action('event_category_page_image','emblem_event_category_page_image');
+add_action('event_archive_page_image','emblem_event_category_page_image');
+function emblem_event_category_page_image()
+{
+	global $post,$wpdb,$wp_query;
+	
+	$post_id = get_the_ID();
+	if(get_post_meta($post_id,'_event_id',true)){
+		$post_id=get_post_meta($post_id,'_event_id',true);
+	}
+	
+	$featured=get_post_meta($post_id,'featured_c',true);
+	$featured=($featured=='c')?'featured_c':'';
+	 if ( has_post_thumbnail()):
+		echo '<a href="'.get_permalink().'" class="event_img">';
+		if($featured){echo '<span class="featured_tag">'.__('Featured',DOMAIN).'</span>';}
+		the_post_thumbnail('emblem-listing-image'); 
+		echo '</a>';
+	else:
+		if(function_exists('bdw_get_images_plugin'))
+		{
+			$post_img = bdw_get_images_plugin($post_id,'emblem-listing-image');						
+			$thumb_img = $post_img[0]['file'];
+			$attachment_id = $post_img[0]['id'];
+			$attach_data = get_post($attachment_id);
+			$img_title = $attach_data->post_title;
+			$img_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+		}
+		?>
+	    <a href="<?php the_permalink();?>" class="event_img">
+       <?php if($featured){echo '<span class="featured_tag">'.__('Featured',DOMAIN).'</span>';}?>
+	    <?php if($thumb_img):?>
+		    <img src="<?php echo $thumb_img; ?>"  alt="<?php echo $img_alt; ?>" title="<?php echo $img_title; ?>" />
+	    <?php else:?>    
+			<img src="<?php echo TEVOLUTION_EVENT_URL; ?>images/noimage-220x150.jpg" alt=""  />
+	    <?php endif;?>
+	    </a>	
+   <?php endif;
+}
+/*
+ * Function Name: slider_image_thumb
+ * Return: fetch image size for slider as per Emblem theme.
+ */
+remove_filter('slider_image_thumb','slider_thumbnail');
+add_filter('slider_image_thumb','slider_image',20);
+function slider_image()
+{
+	return 'emblem-post-slider-image';
+}
+add_filter('slider_thumb_image','slider_thumb_image',20);
+function slider_thumb_image()
+{
+	return 'emblem_slider_thumb_image';
+}
+/*
+ * Function Name: emblem_after_title_listing
+ * Return: fetch rating after post ttle.
+ */
+add_action('supreme_after-title_listing','emblem_after_title_listing');
+function emblem_after_title_listing(){
+	global $post;
+	if(is_author() || is_home() || is_front_page()){ 
+		$post_id=get_the_ID();
+		$post_date =  get_the_date('Y-m-d', $post_id);
+		$tmpdata = get_option('templatic_settings');
+
+		echo '<div class="author_rating">';
+				if(is_plugin_active('Templatic-Multi-Rating/multiple_rating.php') && function_exists('get_single_average_rating_image')): ?>
+                    <div class="event_rating_row"><span class="single_rating"> <?php echo get_single_average_rating_image($post->ID);?> </span></div>
+		<?php	elseif(isset($tmpdata['templatin_rating']) && $tmpdata['templatin_rating']=='yes'):?>
+				<div class="listing_rating">
+					<div class="directory_rating_row"><span class="single_rating"> <?php echo draw_rating_star_plugin(get_post_average_rating($post_id));?> </span></div>
+				</div>
+		<?php endif;	
+		
+		echo "</div>";
+		$address=get_post_meta($post->ID,'address',true);
+		
+		echo ($address)? '<p class="address" itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">'.$address.'</p>' : '';	
+	}
+}
+/*
+ * Function Name: emblem_register_customizer_settings
+ * Return: add image upload for header and footer image in customizer.
+ */
+function emblem_register_customizer_settings($wp_customize)
+{
+	$wp_customize->get_control('color_picker_color1')->label = 'Change color of Body bg, Menu sub-links, Btn text, Footer headings';
+	$wp_customize->get_control('color_picker_color2')->label = 'Change color of Primary Button bg, Menu active link, Link hover';
+	$wp_customize->get_control('color_picker_color3')->label = 'Change color of Button hover bg, Menu links, Links, Headings, Sub-headings, Header & Footer bg';
+	$wp_customize->get_control('color_picker_color4')->label = 'Page Content Color';
+	$wp_customize->get_control('color_picker_color5')->label = 'Sub-texts';
+	$wp_customize->get_control('color_picker_color6')->label = 'Date and recurrences label Color';
+	$wp_customize->add_section('emblem_header_image_settings', array(
+			'title' => 'Header Image',
+			'priority'=> 8
+		));
+	$wp_customize->add_section('emblem_footer_image_settings', array(
+			'title' => 'Footer Image',
+			'priority'=> 13
+		));
+		
+	$wp_customize->add_setting(supreme_prefix().'_theme_settings[header_image_url]',array(
+			'default' => '',
+			'type' => 'option',
+			'capabilities' => 'edit_theme_options',
+			'sanitize_callback' => 	"emblem_customize_header_image_url",
+			'sanitize_js_callback' => 	"emblem_customize_header_image_url",
+			//'transport' => 'postMessage',
+		));
+	$wp_customize->add_control( new WP_Customize_Image_Control($wp_customize, supreme_prefix().'_theme_settings[header_image_url]', array(
+			'label' => __(' Upload image for header background',THEME_DOMAIN),
+			'section' => 'emblem_header_image_settings',
+			'settings' => supreme_prefix().'_theme_settings[header_image_url]',
+		)));
+	function emblem_customize_header_image_url( $setting, $object ) {
+		
+		/* Make sure we kill evil scripts from users without the 'unfiltered_html' cap. */
+		if ( supreme_prefix()."_theme_settings[header_image_url]" == $object->id && !current_user_can( 'unfiltered_html' )  )
+			$setting = stripslashes( wp_filter_post_kses( addslashes( $setting ) ) );
+		/* Return the sanitized setting and apply filters. */
+		return apply_filters( "emblem_customize_header_image_url", $setting, $object );
+	}
+	
+	$wp_customize->add_setting(supreme_prefix().'_theme_settings[footer_image_url]',array(
+			'default' => '',
+			'type' => 'option',
+			'capabilities' => 'edit_theme_options',
+			'sanitize_callback' => 	"emblem_customize_footer_image_url",
+			'sanitize_js_callback' => 	"emblem_customize_footer_image_url",
+			//'transport' => 'postMessage',
+		));
+	$wp_customize->add_control( new WP_Customize_Image_Control($wp_customize, supreme_prefix().'_theme_settings[footer_image_url]', array(
+			'label' => __(' Upload image for footer background',THEME_DOMAIN),
+			'section' => 'emblem_footer_image_settings',
+			'settings' => supreme_prefix().'_theme_settings[footer_image_url]',
+		)));
+	function emblem_customize_footer_image_url( $setting, $object ) {
+		
+		/* Make sure we kill evil scripts from users without the 'unfiltered_html' cap. */
+		if ( supreme_prefix()."_theme_settings[footer_image_url]" == $object->id && !current_user_can( 'unfiltered_html' )  )
+			$setting = stripslashes( wp_filter_post_kses( addslashes( $setting ) ) );
+		/* Return the sanitized setting and apply filters. */
+		return apply_filters( "emblem_customize_footer_image_url", $setting, $object );
+	}
+}
+
+
+
+//adding a new widget
+add_action('widgets_init','location_city_plugin_widgets_init');
+function location_city_plugin_widgets_init(){
+	register_widget('widget_location_city_post_city_id');
+}
+/*
+ * multi city widget class
+ * Class name: widget_location_city_post_city_id
+ */
+class widget_location_city_post_city_id extends WP_Widget {
+
+
+
+	
+	function widget_location_city_post_city_id() {
+	//Constructor
+		$widget_ops = array('classname' => 'Multi City Options', 'description' => __('Displays a dropdown for selecting a state and city. Use when you want to switch cities.',LM_DOMAIN) );		
+		$this->WP_Widget('widget_city_post_city_id', __('T &rarr; City Select',LM_DOMAIN), $widget_ops);
+	}
+	
+	function widget($args, $instance) {
+		global $wpdb,$country_table,$zones_table,$multicity_table;
+		$title = empty($instance['title']) ? __('Multicity',LM_DOMAIN) : apply_filters('widget_title', $instance['title']);
+		if(!session_id())
+			session_start();
+		if(isset($_POST['widget_city']) && $_POST['widget_city']!=""){
+			$_SESSION['post_city_id']=$_POST['widget_city'];	
+		}	
+		$country_table = $wpdb->prefix."countries";
+		$zones_table =$wpdb->prefix . "zones";	
+		$multicity_table = $wpdb->prefix . "multicity";	
+		
+		if(isset($_SESSION['post_city_id']) && $_SESSION['post_city_id']!=''){
+			if(get_query_var('city')!='')
+				$sql="SELECT * FROM $multicity_table where city_slug='".get_query_var('city')."'";
+			else
+				$sql="SELECT * FROM $multicity_table where city_id=".$_SESSION['post_city_id'];
+		}else{
+				$sql="SELECT * FROM $multicity_table where is_default=1";
+		}
+		
+		if(isset($_SESSION['post_city_slug']) && $_SESSION['post_city_slug']!=''){
+			if(get_query_var('city')!='')
+				$sql="SELECT * FROM $multicity_table where city_slug='".get_query_var('city')."'";
+			else
+				$sql="SELECT * FROM $multicity_table where city_slug=".$_SESSION['post_city_slug'];
+		}else{
+				$sql="SELECT * FROM $multicity_table where is_default=1";
+		}
+		
+		$default_city = $wpdb->get_results($sql);
+		$default_city_id=$default_city[0]->city_id;
+		
+		$default_city_slug=$default_city[0]->city_slug;
+		
+		$_SESSION['post_city_id']=$default_city_id;
+		$_SESSION['post_city_slug']=$default_city_slug;
+		
+		$default_country_id=$default_city[0]->country_id;
+		$default_zone_id=$default_city[0]->zones_id;
+		
+		$zoneinfo = $wpdb->get_results("SELECT distinct z.zones_id,z.* FROM $zones_table z, $multicity_table mc where z.zones_id=mc.zones_id AND mc.country_id='226' order by zone_name ASC");
+		$cityinfo = $wpdb->get_results("SELECT * FROM $multicity_table where zones_id='$default_zone_id' AND country_id='226' order by cityname ASC");
+		?>
+		<div id="widget_location">
+          	<script type="text/javascript">
+			jQuery(document).ready(function(){	
+				
+				var myState = '';
+				var myCity = '';
+				jQuery('#widget_zone option[value="' + myState + '"]').prop('selected', true);
+				jQuery('#widget_city option[value="' + myCity + '"]').prop('selected', true);
+				
+				jQuery("#widget_country").change(function(){				
+					var country_id = jQuery('#widget_country').val();		
+					jQuery.ajax({
+						url:ajaxUrl,
+						type:'POST',
+						async: true,
+						data:'action=fill_states_cmb&country_id=' + country_id+'&front=1',
+						success:function(results) {				
+							jQuery('#widget_zone').html(results);
+						}
+					});	
+				});		
+			
+				jQuery("#widget_zone").change(function(){	
+					document.getElementById('citySearchButton').innerHTML="";			
+					var state_id = jQuery('#widget_zone').val();		
+					jQuery.ajax({
+						url:ajaxUrl,
+						type:'POST',
+						async: true,
+						data:'action=fill_city_cmb&state_id=' + state_id,
+						success:function(results) {				
+							jQuery('#widget_city').html(results);
+						}
+					});	
+				});		
+				
+				jQuery("#widget_city").change(function(){					   
+					document.getElementById('citySearchButton').innerHTML="<p class='loading'><i class='fa fa-refresh fa-spin icon-left'></i>Loading</p>";
+					var submitform = jQuery('#widget_multicity_form').submit();
+					//submit via ajax
+					jQuery.ajax({
+            				type: 'POST',
+            				url: ajaxUrl,
+            				async: true,
+            				data: submitform,
+            				success: function(){
+            					$( "#citySearchButton" ).html( data );
+
+            				}
+        				});
+						
+				});	
+				
+				
+			});
+			</script>
+			
+			<?php global $current_cityinfo;?>
+               <?php echo '<h3 class="widget-title">'.$title.'</h3>';?>
+			<ul class="widget_location_nav">
+				<li>
+					<select name="widget_country" id="widget_country">
+						<option value=""><?php _e('Select Country',DOMAIN);?></option>
+					<?php foreach($countryinfo as $country): $selected=($country->country_id==$default_country_id)? 'selected':'';
+						$country_name=$country->country_name;
+						 if (function_exists('icl_register_string')) {									
+								icl_register_string('location-manager', 'location_country_'.$country->country_id,$country_name);
+								$country_name = icl_t('location-manager', 'location_country_'.$country->country_id,$country_name);
+						  }
+					?>
+						<option value="<?php echo $country->country_id?>" <?php echo $selected;?>><?php echo $country_name;?></option>
+					<?php endforeach; ?>
+					</select>
+					
+				</li>
+				<li>
+					<select name="widget_zone" id="widget_zone">
+						<option value=""><?php _e('Select a State',DOMAIN);?></option>
+					<?php foreach($zoneinfo as $zone): $selected=($zone->zones_id ==$default_zone_id)? 'selected':'';
+							$zone_name=$zone->zone_name;
+							 if (function_exists('icl_register_string')) {									
+									icl_register_string('location-manager', 'location_zone_'.$zone->zones_id,$zone_name);
+									$zone_name = icl_t('location-manager', 'location_zone_'.$zone->zones_id,$zone_name);
+							  }	
+					?>
+						<option value="<?php echo $zone->zones_id;?>" <?php echo $selected;?>><?php echo $zone_name;?></option>
+					<?php endforeach;?>
+					</select>
+					
+				</li>
+				<li>
+					<form name="widget_multicity_form" id="widget_multicity_form" action="" method="post">
+						<select name="widget_city" id="widget_city">
+							<option value=""><?php _e('All Cities',DOMAIN);?></option>
+						<?php foreach($cityinfo as $city): $selected=($city->city_slug ==$default_city_slug)? 'selected':'';
+								   $cityname=$city->cityname;
+								   if (function_exists('icl_register_string')) {									
+										icl_register_string('location-manager', 'location_city_'.$city->city_slug,$cityname);
+										$cityname = icl_t('location-manager', 'location_city_'.$city->city_slug,$cityname);
+								   }
+						?>
+							<option value="<?php echo $city->city_slug?>" <?php echo $selected;?>><?php echo $cityname;?></option>
+						<?php endforeach;?>
+						</select>
+					</form>
+				</li>
+				
+				<?php //print_r($current_cityinfo);?>
+				
+			</ul>
+		</div>
+		<?php
+		
+		/* Set the multicity info*/
+		location_current_multicity();
+		
+	}
+	function update($new_instance, $old_instance) {
+		//save the widget		
+		return $new_instance;
+	}
+	function form($instance) {
+		//widgetform in backend
+		$instance = wp_parse_args( (array) $instance, array( 'title' => 'Multicity') );
+		$title = strip_tags($instance['title']);
+		$desc1 = ($instance['desc1']);
+		?>
+		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php echo __('Widget Title',LM_DOMAIN);?>: <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" /></label></p>
+		<?php
+	}
+}
+
+
+
+//add a widget to a post with a shortcode
+/*function widget($atts) {
+    
+    global $wp_widget_factory;
+    
+    extract(shortcode_atts(array(
+        'widget_name' => FALSE
+    ), $atts));
+    
+    $widget_name = esc_html($widget_name);
+    
+    if (!is_a($wp_widget_factory->widgets[$widget_name], 'WP_Widget')):
+        $wp_class = 'WP_Widget_'.ucwords(strtolower($class));
+        
+        if (!is_a($wp_widget_factory->widgets[$wp_class], 'WP_Widget')):
+            return '<p>'.sprintf(__("%s: Widget class not found. Make sure this widget exists and the class name is correct"),'<strong>'.$class.'</strong>').'</p>';
+        else:
+            $class = $wp_class;
+        endif;
+    endif;
+    
+    ob_start();
+    the_widget($widget_name, $instance, array('widget_id'=>'arbitrary-instance-'.$id,
+        'before_widget' => '',
+        'after_widget' => '',
+        'before_title' => '',
+        'after_title' => ''
+    ));
+    $output = ob_get_contents();
+    ob_end_clean();
+    return $output;
+    
+}
+add_shortcode('widget','widget');
+*/
+
+//my rewrite to change %city% from plugin to grab the city slug of the current city we are in
+add_filter('term_link','my_templatic_create_term_permalinks',10,3);
+function my_templatic_create_term_permalinks($termlink, $term, $taxonomy){
+	global $current_cityinfo;
+	
+	//if(isset($current_cityinfo['city_slug']) && $current_cityinfo['city_slug']!=''){
+		$city=$current_cityinfo['city_slug'];
+	//}else{
+	//	$city='na';
+	//}
+	$termlink = str_replace(array('%city%'), array($city), $termlink);
+	return $termlink;
+}
+
+
+//thats all folks
+?>

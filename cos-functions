@@ -1,0 +1,589 @@
+<?php
+/*
+Author: Eddie Machado
+URL: htp://themble.com/bones/
+
+This is where you can drop your custom functions or
+just edit things like thumbnail sizes, header images, 
+sidebars, comments, ect.
+*/
+
+// Get Bones Core Up & Running!
+require_once('library/bones.php');            // core functions (don't remove)
+require_once('library/plugins.php');          // plugins & extra functions (optional)
+
+// Shortcodes
+require_once('library/shortcodes.php');
+
+
+// Custom Backend Footer
+add_filter('admin_footer_text', 'bones_custom_admin_footer');
+function bones_custom_admin_footer() {
+	echo '<span id="footer-thankyou">Developed by <a href="http://simpleunion.com" target="_blank">SimpleUnion</a></span>.';
+}
+
+// adding it to the admin area
+add_filter('admin_footer_text', 'bones_custom_admin_footer');
+
+// Set content width
+if ( ! isset( $content_width ) ) $content_width = 580;
+
+/************* THUMBNAIL SIZE OPTIONS *************/
+
+// Thumbnail sizes
+add_image_size( 'wpbs-featured', 770, 300, true );
+add_image_size( 'wpbs-featured-home', 970, 311, true);
+add_image_size( 'wpbs-featured-carousel', 970, 400, true);
+add_image_size( 'bones-thumb-600', 600, 150, false );
+add_image_size( 'bones-thumb-300', 300, 100, true );
+/* 
+to add more sizes, simply copy a line from above 
+and change the dimensions & name. As long as you
+upload a "featured image" as large as the biggest
+set width or height, all the other sizes will be
+auto-cropped.
+
+To call a different size, simply change the text
+inside the thumbnail function.
+
+For example, to call the 300 x 300 sized image, 
+we would use the function:
+<?php the_post_thumbnail( 'bones-thumb-300' ); ?>
+for the 600 x 100 image:
+<?php the_post_thumbnail( 'bones-thumb-600' ); ?>
+
+You can change the names and dimensions to whatever
+you like. Enjoy!
+*/
+
+
+/************* ACTIVE SIDEBARS ********************/
+
+// Sidebars & Widgetizes Areas
+function bones_register_sidebars() {
+    register_sidebar(array(
+    	'id' => 'sidebar-page',
+    	'name' => 'Page Sidebar',
+    	'description' => 'Used on static pages.',
+    	'before_widget' => '<div id="%1$s" class="widget %2$s">',
+    	'after_widget' => '</div>',
+    	'before_title' => '<h4 class="widgettitle">',
+    	'after_title' => '</h4><div class="divider"><span></span></div> ',
+    ));
+    
+    register_sidebar(array(
+    	'id' => 'sidebar-blog',
+    	'name' => 'Blog Sidebar',
+    	'description' => 'Used only on blog pages.',
+    	'before_widget' => '<div id="%1$s" class="widget %2$s">',
+    	'after_widget' => '</div>',
+    	'before_title' => '<h4 class="widgettitle">',
+    	'after_title' => '</h4><div class="divider"><span></span></div> ',
+    ));
+    
+    
+    
+    
+    /* 
+    to add more sidebars or widgetized areas, just copy
+    and edit the above sidebar code. In order to call 
+    your new sidebar just use the following code:
+    
+    Just change the name to whatever your new
+    sidebar's id is, for example:
+    
+    
+    
+    To call the sidebar in your template, you can just copy
+    the sidebar.php file and rename it to your sidebar's name.
+    So using the above example, it would be:
+    sidebar-sidebar2.php
+    
+    */
+} // don't remove this bracket!
+
+/************* COMMENT LAYOUT *********************/
+		
+// Comment Layout
+function bones_comments($comment, $args, $depth) {
+   $GLOBALS['comment'] = $comment; ?>
+	<li <?php comment_class(); ?>>
+		<article id="comment-<?php comment_ID(); ?>" class="clearfix">
+			<div class="comment-author vcard row-fluid clearfix">
+				<div class="avatar span1">
+					<?php echo get_avatar($comment,$size='75',$default='<path_to_url>' ); ?>
+				</div>
+				<div class="span10 comment-text media-body">
+					<?php printf(__('<h4 class="media-heading">%s</h4>','bonestheme'), get_comment_author_link()) ?>
+					
+                    
+                    	<?php if ($comment->comment_approved == '0') : ?>
+       					<div class="alert-message success">
+          				<p><?php _e('Your comment is awaiting moderation.','bonestheme') ?></p>
+          				</div>
+					<?php endif; ?>
+                    
+                    	<?php comment_text() ?>
+                    
+                    	<time datetime="<?php echo comment_time('Y-m-j'); ?>"><a href="<?php echo htmlspecialchars( get_comment_link( $comment->comment_ID ) ) ?>"><?php comment_time('F jS, Y'); ?> </a></time>
+                    
+					<?php comment_reply_link(array_merge( $args, array('depth' => $depth, 'max_depth' => $args['max_depth']))) ?>
+					<div class="clearfix"></div>
+					<?php edit_comment_link(__('Edit This Comment','bonestheme'),'<span class="edit-comment btn btn-small"><i class="icon-white icon-pencil"></i>','</span>') ?>
+                	</div><!-- end of media body comment text -->
+			</div><!-- end of comment-author -->
+		</article>
+    <!-- </li> is added by wordpress automatically -->
+<?php
+} // don't remove this bracket!
+
+// Display trackbacks/pings callback function
+function list_pings($comment, $args, $depth) {
+       $GLOBALS['comment'] = $comment;
+?>
+        <li id="comment-<?php comment_ID(); ?>"><i class="icon icon-share-alt"></i>&nbsp;<?php comment_author_link(); ?>
+<?php 
+
+}
+
+// Only display comments in comment count (which isn't currently displayed in wp-bootstrap, but i'm putting this in now so i don't forget to later)
+add_filter('get_comments_number', 'comment_count', 0);
+function comment_count( $count ) {
+	if ( ! is_admin() ) {
+		global $id;
+	    $comments_by_type = &separate_comments(get_comments('status=approve&post_id=' . $id));
+	    return count($comments_by_type['comment']);
+	} else {
+	    return $count;
+	}
+}
+
+/************* SEARCH FORM LAYOUT *****************/
+
+// Search Form
+function bones_wpsearch($form) {
+    $form = '<form role="search" method="get" id="searchform" action="' . home_url( '/' ) . '" >
+    <label class="screen-reader-text" for="s">' . __('Search for:', 'bonestheme') . '</label>
+    <input type="text" value="' . get_search_query() . '" name="s" id="s" placeholder="Search the Site..." />
+    <input type="submit" id="searchsubmit" value="'. esc_attr__('Search','bonestheme') .'" />
+    </form>';
+    return $form;
+} // don't remove this bracket!
+
+/****************** password protected post form *****/
+
+add_filter( 'the_password_form', 'custom_password_form' );
+
+function custom_password_form() {
+	global $post;
+	$label = 'pwbox-'.( empty( $post->ID ) ? rand() : $post->ID );
+	$o = '<div class="clearfix"><form class="protected-post-form" action="' . get_option('siteurl') . '/wp-login.php?action=postpass" method="post">
+	' . __( "<p>This post is password protected. To view it please enter your password below:</p>" ,'bonestheme') . '
+	<label for="' . $label . '">' . __( "Password:" ,'bonestheme') . ' </label><div class="input-append"><input name="post_password" id="' . $label . '" type="password" size="20" /><input type="submit" name="Submit" class="btn btn-primary" value="' . esc_attr__( "Submit",'bonestheme' ) . '" /></div>
+	</form></div>
+	';
+	return $o;
+}
+
+/*********** update standard wp tag cloud widget so it looks better ************/
+
+add_filter( 'widget_tag_cloud_args', 'my_widget_tag_cloud_args' );
+
+function my_widget_tag_cloud_args( $args ) {
+	$args['number'] = 20; // show less tags
+	$args['largest'] = 9.75; // make largest and smallest the same - i don't like the varying font-size look
+	$args['smallest'] = 9.75;
+	$args['unit'] = 'px';
+	return $args;
+}
+
+
+
+// filter tag clould output so that it can be styled by CSS
+function add_tag_class( $taglinks ) {
+    $tags = explode('</a>', $taglinks);
+    $regex = "#(.*tag-link[-])(.*)(' title.*)#e";
+        foreach( $tags as $tag ) {
+        	$tagn[] = preg_replace($regex, "('$1$2 label tag-'.get_tag($2)->slug.'$3')", $tag );
+        }
+    $taglinks = implode('</a>', $tagn);
+    return $taglinks;
+}
+
+add_action('wp_tag_cloud', 'add_tag_class');
+
+add_filter('wp_tag_cloud','wp_tag_cloud_filter', 10, 2);
+
+function wp_tag_cloud_filter($return, $args)
+{
+  return '<div id="tag-cloud">'.$return.'</div>';
+}
+
+// Enable shortcodes in widgets
+add_filter('widget_text', 'do_shortcode');
+
+// Disable jump in 'read more' link
+function remove_more_jump_link($link) {
+	$offset = strpos($link, '#more-');
+	if ($offset) {
+		$end = strpos($link, '"',$offset);
+	}
+	if ($end) {
+		$link = substr_replace($link, '', $offset, $end-$offset);
+	}
+	return $link;
+}
+add_filter('the_content_more_link', 'remove_more_jump_link');
+
+// Remove height/width attributes on images so they can be responsive
+add_filter( 'post_thumbnail_html', 'remove_thumbnail_dimensions', 10 );
+add_filter( 'image_send_to_editor', 'remove_thumbnail_dimensions', 10 );
+
+function remove_thumbnail_dimensions( $html ) {
+    $html = preg_replace( '/(width|height)=\"\d*\"\s/', "", $html );
+    return $html;
+}
+
+
+// Add thumbnail class to thumbnail links
+function add_class_attachment_link($html){
+    $postid = get_the_ID();
+    $html = str_replace('<a','<a class="thumbnail"',$html);
+    return $html;
+}
+add_filter('wp_get_attachment_link','add_class_attachment_link',10,1);
+
+
+// Menu output mods
+class description_walker extends Walker_Nav_Menu
+{
+      function start_el(&$output, $item, $depth, $args)
+      {
+			global $wp_query;
+			$indent = ( $depth ) ? str_repeat( "\t", $depth ) : '';
+			
+			$class_names = $value = '';
+			
+			// If the item has children, add the dropdown class for bootstrap
+			if ( $args->has_children ) {
+				$class_names = "dropdown ";
+			}
+			
+			$classes = empty( $item->classes ) ? array() : (array) $item->classes;
+			
+			$class_names .= join( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item ) );
+			$class_names = ' class="'. esc_attr( $class_names ) . '"';
+           
+           	$output .= $indent . '<li id="menu-item-'. $item->ID . '"' . $value . $class_names .'>';
+
+           	$attributes  = ! empty( $item->attr_title ) ? ' title="'  . esc_attr( $item->attr_title ) .'"' : '';
+           	$attributes .= ! empty( $item->target )     ? ' target="' . esc_attr( $item->target     ) .'"' : '';
+           	$attributes .= ! empty( $item->xfn )        ? ' rel="'    . esc_attr( $item->xfn        ) .'"' : '';
+           	$attributes .= ! empty( $item->url )        ? ' href="'   . esc_attr( $item->url        ) .'"' : '';
+           	// if the item has children add these two attributes to the anchor tag
+           	if ( $args->has_children ) {
+				$attributes .= ' class="dropdown-toggle" data-toggle="dropdown"';
+			}
+
+            $item_output = $args->before;
+            $item_output .= '<a'. $attributes .'>';
+            $item_output .= $args->link_before .apply_filters( 'the_title', $item->title, $item->ID );
+            $item_output .= $args->link_after;
+            // if the item has children add the caret just before closing the anchor tag
+            if ( $args->has_children ) {
+            	$item_output .= '<b class="caret"></b></a>';
+            }
+            else{
+            	$item_output .= '</a>';
+            }
+            $item_output .= $args->after;
+
+            $output .= apply_filters( 'walker_nav_menu_start_el', $item_output, $item, $depth, $args );
+            }
+            
+        function start_lvl(&$output, $depth) {
+            $indent = str_repeat("\t", $depth);
+            $output .= "\n$indent<ul class=\"dropdown-menu\">\n";
+        }
+            
+      	function display_element( $element, &$children_elements, $max_depth, $depth=0, $args, &$output )
+      	    {
+      	        $id_field = $this->db_fields['id'];
+      	        if ( is_object( $args[0] ) ) {
+      	            $args[0]->has_children = ! empty( $children_elements[$element->$id_field] );
+      	        }
+      	        return parent::display_element( $element, $children_elements, $max_depth, $depth, $args, $output );
+      	    }
+      	
+            
+}
+
+add_editor_style('editor-style.css');
+
+// Add Twitter Bootstrap's standard 'active' class name to the active nav link item
+
+add_filter('nav_menu_css_class', 'add_active_class', 10, 2 );
+function add_active_class($classes, $item) {
+	if($item->menu_item_parent == 0 && in_array('current-menu-item', $classes)) {
+        $classes[] = "active";
+	}
+    return $classes;
+}
+
+//remove pings to self
+function no_self_ping( &$links ) {
+    $home = get_option( 'home' );
+    foreach ( $links as $l => $link )
+        if ( 0 === strpos( $link, $home ) )
+            unset($links[$l]);
+}
+add_action( 'pre_ping', 'no_self_ping' );
+
+
+// enqueue styles
+
+function theme_styles()  
+{ 
+    wp_register_style( 'bootstrap', get_template_directory_uri() . '/library/css/bootstrap.min.css', array(), '1.0', 'all' );
+    wp_register_style( 'prettyPhoto', get_template_directory_uri() . '/library/js/js-plugin/pretty-photo/css/prettyPhoto.css', array(), '1.0', 'all' );
+    wp_register_style( 'slider', get_template_directory_uri() . '/library/js/js-plugin/rs-plugin/css/slider.css', array(), '1.0', 'all' );
+    wp_register_style( 'application-wizard', get_template_directory_uri() . '/library/js/js-plugin/application-wizard/application-wizard.css', array(), '1.0', 'all' );
+    wp_register_style( 'custom-icons', get_template_directory_uri() . '/library/font-icons/custom-icons/css/custom-icons.css', array(), '1.0', 'all' );
+    wp_register_style( 'custom-icons-ie7', get_template_directory_uri() . '/library/font-icons/custom-icons/css/custom-icons-ie7.css', array(), '1.0', 'all' );
+    wp_register_style( 'hover', get_template_directory_uri() . '/library/js/js-plugin/hoverdir/css/style.css', array(), '1.0', 'all' );
+    wp_register_style( 'main', get_template_directory_uri() . '/style.css', array(), '1.0', 'all' );
+    wp_register_style( 'blue', get_template_directory_uri() . '/library/css/blue.css', array(), '1.2', 'all' );
+    wp_register_style( 'docs', get_template_directory_uri() . '/library/css/docs.css', array(), '1.0', 'all' );
+    
+    
+    wp_enqueue_style( 'bootstrap' );
+    wp_enqueue_style( 'prettyPhoto' );
+    wp_enqueue_style( 'slider' );
+    wp_enqueue_style( 'application-wizard');
+    wp_enqueue_style( 'custom-icons');
+    wp_enqueue_style( 'custom-icons-ie7');
+    wp_enqueue_style( 'hover');
+    wp_enqueue_style( 'main');
+    wp_enqueue_style( 'blue');
+    wp_enqueue_style( 'docs');
+    
+}
+add_action('wp_enqueue_scripts', 'theme_styles');
+
+/************* DASHBOARD WIDGETS *****************/
+
+// disable default dashboard widgets
+function disable_default_dashboard_widgets() {
+	// remove_meta_box('dashboard_right_now', 'dashboard', 'core');    // Right Now Widget
+	//remove_meta_box('dashboard_recent_comments', 'dashboard', 'core'); // Comments Widget
+	//remove_meta_box('dashboard_incoming_links', 'dashboard', 'core');  // Incoming Links Widget
+	remove_meta_box('dashboard_plugins', 'dashboard', 'core');         // Plugins Widget
+	remove_meta_box('dashboard_quick_press', 'dashboard', 'core');  // Quick Press Widget
+	remove_meta_box('dashboard_recent_drafts', 'dashboard', 'core');   // Recent Drafts Widget
+	remove_meta_box('dashboard_primary', 'dashboard', 'core');         // 
+	remove_meta_box('dashboard_secondary', 'dashboard', 'core');       //
+	// removing plugin dashboard boxes 
+	remove_meta_box('yoast_db_widget', 'dashboard', 'normal');         // Yoast's SEO Plugin Widget
+	
+	/* 
+	have more plugin widgets you'd like to remove? 
+	share them with us so we can get a list of 
+	the most commonly used. :D
+	https://github.com/eddiemachado/bones/issues
+	*/
+}
+
+/*
+Now let's talk about adding your own custom Dashboard widget.
+Sometimes you want to show clients feeds relative to their 
+site's content. For example, the NBA.com feed for a sports
+site. Here is an example Dashboard Widget that displays recent
+entries from an RSS Feed.
+
+For more information on creating Dashboard Widgets, view:
+http://digwp.com/2010/10/customize-wordpress-dashboard/
+*/
+
+
+add_action('wp_dashboard_setup', 'my_custom_dashboard_widgets');
+
+function my_custom_dashboard_widgets() {
+
+	global $wp_meta_boxes;
+	global $user_login;
+   	get_currentuserinfo();
+   	if ($user_login !== "Heat Miser") {
+		wp_add_dashboard_widget('custom_help_widget', 'Need Theme Support?', 'custom_dashboard_help');
+	}
+}
+
+function custom_dashboard_help() {
+echo '<p>For all your web development, design and app creation, send simpleunion <a href="mailto:contact@simpleunion.com">an email</a> or give us a call at 415 704 8777</p><p>You can also visit our website at <a href="http://simpleunion.com">http://simpleunion.com</a></p>';
+
+}
+
+
+// removing the dashboard widgets
+add_action('admin_menu', 'disable_default_dashboard_widgets');
+// adding any custom widgets
+
+/************* Custom Login Screen *****************/
+function custom_login() {
+	$files = '<link rel="stylesheet" href="'.get_bloginfo('template_directory').'/library/css/login.css" />
+			<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	          <script src="'.get_bloginfo('template_directory').'/library/js/login.js"></script>';
+	echo $files;
+}
+add_action('login_head', 'custom_login');
+
+function custom_login_url() {
+	return get_option('siteurl');
+}
+add_filter('login_headerurl', 'custom_login_url');
+
+function custom_login_title() {
+	return get_option('blogname');
+}
+add_filter('login_headertitle', 'custom_login_title');
+
+/************ Custom Logo Dashboard ***************/
+add_action('admin_head', 'my_custom_logo');
+
+function my_custom_logo() {
+	echo '<style type="text/css">#wp-admin-bar-wp-logo > .ab-item .ab-icon { background-image: url('.get_bloginfo('template_directory').'/library/images/logo-dashboard.png) !important;background-position: 0 0;}</style>';
+}
+
+/************ Custom Update Notification ***************/
+function dnnsldr_update_nag() {
+		if ( is_multisite() && !current_user_can('update_core') )
+		return false;
+
+	global $pagenow;
+	
+
+	if ( 'update-core.php' == $pagenow )
+		return;
+
+	$cur = get_preferred_from_update_core();
+
+	if ( ! isset( $cur->response ) || $cur->response != 'upgrade' )
+		return false;
+
+	if ( current_user_can('update_core') ) {
+		
+		global $user_login;
+   		get_currentuserinfo();
+   		if ($user_login !== "Heat Miser") {
+	
+			$msg = sprintf( __('Your Admin Theme and Site Framework is ready for an update. Please contact <a href="mailto:info@simpleunion.com" target="_blank">SimpleUnion</a> to perform the 			required update.'), $cur->current, 'update-core.php' );
+		}
+	} else {
+		$msg = sprintf( __('Please contact <a href="mailto:info@simpleunion.com" target="_blank">Simple Union</a> for all your development and design needs.'), $cur->current );
+
+	echo "<div class='update-nag'>$msg</div>";
+	}
+}
+add_action('admin_init',create_function('$a','remove_action("admin_notices","update_nag",3);'));
+add_action('admin_init',create_function('$a','remove_filter("update_footer","core_update_footer");'));
+add_action( 'admin_notices', 'dnnsldr_update_nag', 3 );
+
+/************ Super Admin Only Version Check ***************/
+global $user_login;
+get_currentuserinfo();
+if ($user_login !== "Heat Miser") {
+	add_action( 'init', create_function( '$a', "remove_action( 'init', 'wp_version_check' );" ), 2 );
+	add_filter( 'pre_option_update_core', create_function( '$a', "return null;" ) );
+}
+
+/************Change Posts to Articles ***************/
+function change_post_menu_label() {
+	global $menu;
+	global $submenu;
+	$menu[5][0] = 'Article List';
+	$submenu['edit.php'][5][0] = 'Article List';
+	$submenu['edit.php'][10][0] = 'Add an Article';
+	$submenu['edit.php'][16][0] = 'Article Tags';
+	echo '';
+}
+function change_post_object_label() {
+	global $wp_post_types;
+	$labels = &$wp_post_types['post']->labels;
+	$labels->name = 'Article List';
+	$labels->singular_name = 'Article';
+	$labels->add_new = 'Add an Article';
+	$labels->add_new_item = 'Add an Article';
+	$labels->edit_item = 'Edit Articles';
+	$labels->new_item = 'Articles';
+	$labels->view_item = 'View Articles';
+	$labels->search_items = 'Search Articles';
+	$labels->not_found = 'No Articles found';
+	$labels->not_found_in_trash = 'No Articles found in Trash';
+}
+add_action( 'init', 'change_post_object_label' );
+add_action( 'admin_menu', 'change_post_menu_label' );
+
+/************ Remove Ability to Edit/Deactive Plugins except Super Admin ***************/
+global $user_login;
+get_currentuserinfo();
+if ($user_login !== "Heat Miser") {
+	add_filter( 'plugin_action_links', 'disable_plugin_deactivation', 10, 4 );
+	function disable_plugin_deactivation( $actions, $plugin_file, $plugin_data, $context ) {
+	// Remove edit link for all plugins
+		if ( array_key_exists( 'edit', $actions ) )
+			unset( $actions['edit'] );
+		// Remove deactivate link for important plugins
+		if ( array_key_exists( 'deactivate', $actions ) && in_array( $plugin_file, array(
+			'contact-form-7/wp-contact-form-7.php',
+			'contact-form-7-to-database-extension/contact-form-7-db.php',
+          	'cos-admin.php',
+          	'better-wp-security/better-wp-security.php',
+          	'wp-mail-smtp/wp_mail_smtp.php',
+          	'types/wpcf.php'
+          
+		)))
+			unset( $actions['deactivate'] );
+		return $actions;
+	}
+}
+
+/************ Unregister Default Widgets ***************/
+function unregister_default_wp_widgets() {
+	global $current_user;
+    	get_currentuserinfo();
+
+    	if($current_user->user_login !== 'Heat Miser') {
+    		unregister_widget('WP_Widget_Calendar');
+    		unregister_widget('WP_Widget_Archives');
+    		unregister_widget('WP_Widget_Meta');
+   	}
+}
+add_action('widgets_init', 'unregister_default_wp_widgets', 1);
+
+/************ Custom Menu for Super Admin ***************/
+function remove_menus()
+{
+    global $menu;
+    global $current_user;
+    get_currentuserinfo();
+
+    if($current_user->user_login !== 'Heat Miser') {
+        $restricted = array(__('Settings'),
+                            __('Security')
+        );
+        end ($menu);
+        while (prev($menu)){
+            $value = explode(' ',$menu[key($menu)][0]);
+            if(in_array($value[0] != NULL?$value[0]:"" , $restricted)){unset($menu[key($menu)]);}
+        }// end while
+
+    }// end if
+}
+add_action('admin_menu', 'remove_menus');
+
+/************ Remove Editing Abilility Except Super Admin ***************/
+//global $current_user;
+//get_currentuserinfo();
+//if($current_user->user_login !== 'Heat Miser') {
+//	define( 'DISALLOW_FILE_EDIT', true );
+//}
+?>
